@@ -8,6 +8,9 @@ body {
 }
 
 #anime-chan-container {
-    width: 100vw;
-    height: 100vh;
+    position: relative;
+    margin-left: 50vw;
+    margin-top: 50vh;
+    width: 50vw;
+    height: 50vh;
 }
