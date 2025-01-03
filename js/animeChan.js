@@ -80,16 +80,16 @@ class AnimeChan {
          * @type {Object}
          *
          * @property {Object} part.body - Body info
-         * @property {HTMLImageElement} part.body.main - Source of the main body image
+         * @property {HTMLImageElement} part.body.main - Source of the main body image (Necessarily)
          *
          * @property {Object} part.sclera - Sclera info
-         * @property {HTMLImageElement} part.sclera.main - Source of the main sclera image
+         * @property {HTMLImageElement} part.sclera.main - Source of the main sclera image (Necessarily)
          *
          * @property {Object} part.eyes - Eyes info (pupil and glare)
-         * @property {HTMLImageElement} part.eyes.main - Source of the main eyes image
+         * @property {HTMLImageElement} part.eyes.main - Source of the main eyes image (Necessarily)
          *
          * @property {Object} part.mouth - Eyes info (pupil and glare)
-         * @property {HTMLImageElement} part.mouth.main - Source of the main eyes image
+         * @property {HTMLImageElement} part.mouth.main - Source of the main eyes image (Necessarily)
          *
          */
         this.part = Object();
@@ -167,9 +167,15 @@ globalThis.animeChan = new AnimeChan({
          * Container that will contain anime character
          * @type {HTMLElement}
          */
-        const container = document.getElementById(containerId) || document.documentElement,
+        const container = document.getElementById(containerId) || document.documentElement;
+        container.setAttribute('style', '');
+        const
             containerParams = container.getBoundingClientRect(),
-            minSize = containerParams.width < containerParams.height ? 'width' : 'height';
+            styles = window.getComputedStyle(container),
+            minSize = styles.getPropertyValue('--adjust-to')
+                ? styles.getPropertyValue('--adjust-to').slice(1, -1)
+                : (containerParams.width < containerParams.height) ? 'width' : 'height',
+            maxSize = (minSize !== 'width')? 'width' : 'height';
 
         animeChan.ratio = animeChan.part.body.main[addPrefix('natural', minSize)] / containerParams[minSize];
         ['width', 'height'].forEach((prop) => {
@@ -181,6 +187,10 @@ globalThis.animeChan = new AnimeChan({
                 });
             });
         });
+
+        if (styles.getPropertyValue('--adjust-to')) {
+            container.style[maxSize] = animeChan.part.body.main.style[addPrefix('max', maxSize)];
+        }
 
         ['top', 'left'].forEach((side) => {
             Object.keys(animeChan.part).forEach((partName) => {

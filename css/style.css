@@ -15,6 +15,7 @@ body {
 
     width: 50vw;
     height: 50vh;
+    --adjust-to: "width";
 
     transform: translate(-50%, -50%);
 }
