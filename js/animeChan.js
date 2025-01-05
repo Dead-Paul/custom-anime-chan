@@ -10,16 +10,22 @@ const
 /**
  * Creates new Image
  * @function
- * @param {!String} src - Path to Image
+ * @param {!String} src - Path to the image
+ * @param {?String} id - Id of the image
  * @param {?String} position - CSS style position ('absolute' by default)
- * @returns {HTMLImageElement}
+ * @returns {Promise<HTMLImageElement|Error>}
  */
-function createImage (src, position) {
+function createImage (src, id, position) {
     position = position || 'absolute';
     const img = new Image();
     img.src = src;
+    if (id)
+        img.setAttribute('id', id);
     img.style.position = position;
-    return img;
+    return new Promise((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Can\'t load image :('));
+    });
 };
 
 /**
@@ -109,10 +115,9 @@ class AnimeChan {
             this.startPosition[partName] = Object();
             Object.keys(character[partName]).forEach((partType, i) => {
                 this.startPosition[partName][partType] = Object();
-                this.part[partName][partType] = createImage(character[partName][partType].src, null);
-                this.startPosition[partName][partType].left = this.part[partName][partType].style.left = `${character[partName][partType].position.x}px`;
-                this.startPosition[partName][partType].top = this.part[partName][partType].style.top = `${character[partName][partType].position.y}px`;
-                this.part[partName][partType].setAttribute('id', `anime-chan-${partName}`);
+                this.part[partName][partType] = createImage(character[partName][partType].src, `anime-chan-${partName}`, null);
+                this.startPosition[partName][partType].left = `${character[partName][partType].position.x}px`;
+                this.startPosition[partName][partType].top = `${character[partName][partType].position.y}px`;
             });
         });
         /**
@@ -128,23 +133,17 @@ class AnimeChan {
      * @memberof AnimeChan
      * @param {!String} partName - Part of th character that you want to change
      * @param {?String} partType - Name of the part type ('main' by default)
-     * @returns {boolean} - Success or failure
      */
     setActive = function (partName, partType) {
         partType = partType || 'main';
-        try {
-            if (this.active[partName] == partType) return false;
+        if (this.active[partName] == partType) return;
 
-            this.active[partName] = partType;
-            (document.getElementById(containerId) || document.documentElement).replaceChild(
-                this.part[partName][partType],
-                document.getElementById(`anime-chan-${partName}`) || document.createElement('img')
-            );
-            return true;
-        } catch (error) {
-            console.log(error);
-            return false;
-        }
+        this.part[partName][partType]
+            .then(/**@param {HTMLImageElement} img */ img => {
+                //@ts-expect-error : In the document must be element with id = `anime-chan-${partName}`;
+                (document.getElementById(containerId) || document.documentElement).replaceChild(img, document.getElementById(`anime-chan-${partName}`));
+                this.active[partName] = partType;
+            }).catch(/**@param {Error} error */ error => console.error(error));
     };
 }
 
@@ -153,21 +152,21 @@ globalThis.animeChan = new AnimeChan({
     sclera: { main: { src: path + 'sclera.png', position: { x: 0, y: 0 } } },
     eyes: {
         main: { src: path + 'eyes.png', position: { x: 595, y: 368 } },
-        //@ts-expect-error
+        //@ts-expect-error : There is no requirement to write this objects in the constructor, but it will not throw error
         love: { src: path + 'eyes-love.png', position: { x: 595, y: 368 }},
         think: { src: path + 'eyes-think.png', position: { x: 595, y: 368 }}
     },
     body: { main: { src: path + 'body.png', position: { x: 0, y: 0 } } },
     mouth: {
         main: { src: path + 'mouth-open.png', position: { x: 695, y: 528 } },
-        //@ts-expect-error
+        //@ts-expect-error : There is no requirement to write this objects in the constructor, but it will not throw error
         smile: { src: path + 'mouth-smile.png', position: { x: 653, y: 506 } },
         sad: { src: path + 'mouth-sad.png', position: { x: 698, y: 531 } },
     },
 });
 
 ['DOMContentLoaded', 'resize'].forEach((event) =>
-    window.addEventListener(event, () => {
+    window.addEventListener(event, async () => {
         /**
          * Container that will contain anime character
          * @type {HTMLElement}
@@ -180,33 +179,35 @@ globalThis.animeChan = new AnimeChan({
             minSize = styles.getPropertyValue('--adjust-to')
                 ? styles.getPropertyValue('--adjust-to').slice(1, -1)
                 : (containerParams.width < containerParams.height) ? 'width' : 'height',
-            maxSize = (minSize !== 'width')? 'width' : 'height';
+            maxSize = (minSize !== 'width')? 'width' : 'height',
+            /**@type {HTMLImageElement} */
+            animeChanBodyMainImage = await animeChan.part.body.main;
 
-        animeChan.ratio = animeChan.part.body.main[addPrefix('natural', minSize)] / containerParams[minSize];
+        animeChan.ratio = animeChanBodyMainImage[addPrefix('natural', minSize)] / containerParams[minSize];
         ['width', 'height'].forEach((prop) => {
             Object.keys(animeChan.part).forEach((partName) => {
-                Object.keys(animeChan.part[partName]).forEach((partImage) => {
-                    animeChan.part[partName][partImage].style[addPrefix('max', prop)] = (
-                        `${animeChan.part[partName][partImage][addPrefix('natural', prop)] / animeChan.ratio}px`
-                    );
+                Object.keys(animeChan.part[partName]).forEach(async (partImage) => {
+                    const animeChanPartImage = await animeChan.part[partName][partImage];
+                    animeChanPartImage.style[addPrefix('max', prop)] = `${animeChanPartImage[addPrefix('natural', prop)] / animeChan.ratio}px`;
                 });
             });
         });
 
         if (styles.getPropertyValue('--adjust-to')) {
-            container.style[maxSize] = animeChan.part.body.main.style[addPrefix('max', maxSize)];
+            container.style[maxSize] = `${animeChanBodyMainImage[addPrefix('natural', maxSize)] / animeChan.ratio}px`;
         }
 
         ['top', 'left'].forEach((side) => {
             Object.keys(animeChan.part).forEach((partName) => {
-                Object.keys(animeChan.part[partName]).forEach((partImage) => {
-                    animeChan.part[partName][partImage].style[side] = `${parseFloat(animeChan.startPosition[partName][partImage][side]) / animeChan.ratio}px`;
+                Object.keys(animeChan.part[partName]).forEach(async (partImage) => {
+                    const animeChanPartImage = await animeChan.part[partName][partImage];
+                    animeChanPartImage.style[side] = `${parseFloat(animeChan.startPosition[partName][partImage][side]) / animeChan.ratio}px`;
                 });
             });
         });
 
-        Object.keys(animeChan.part).forEach((partName) => {
-            if (animeChan.active[partName]) container.appendChild(animeChan.part[partName][animeChan.active[partName]]);
+        Object.keys(animeChan.part).forEach(async (partName) => {
+            if (animeChan.active[partName]) container.appendChild(await animeChan.part[partName][animeChan.active[partName]]);
         });
     })
 );
