@@ -151,13 +151,18 @@ class AnimeChan {
 /** Anime character @type {AnimeChan}*/
 globalThis.animeChan = new AnimeChan({
     sclera: { main: { src: path + 'sclera.png', position: { x: 0, y: 0 } } },
-    eyes: { main: { src: path + 'eyes.png', position: { x: 595, y: 368 } } },
+    eyes: {
+        main: { src: path + 'eyes.png', position: { x: 595, y: 368 } },
+        //@ts-expect-error
+        love: { src: path + 'eyes-love.png', position: { x: 595, y: 368 }},
+        think: { src: path + 'eyes-think.png', position: { x: 595, y: 368 }}
+    },
     body: { main: { src: path + 'body.png', position: { x: 0, y: 0 } } },
     mouth: {
-        main: { src: path + 'opened-mouth.png', position: { x: 695, y: 528 } },
+        main: { src: path + 'mouth-open.png', position: { x: 695, y: 528 } },
         //@ts-expect-error
-        smile: { src: path + 'smile.png', position: { x: 653, y: 506 } },
-        sad: { src: path + 'sad.png', position: { x: 698, y: 531 } },
+        smile: { src: path + 'mouth-smile.png', position: { x: 653, y: 506 } },
+        sad: { src: path + 'mouth-sad.png', position: { x: 698, y: 531 } },
     },
 });
 
