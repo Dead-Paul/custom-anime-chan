@@ -1,0 +1,22 @@
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+body {
+    background-color: black;
+}
+
+#anime-chan-container {
+    position: relative;
+
+    margin-left: 50vw;
+    margin-top: 50vh;
+
+    width: 50vw;
+    height: 50vh;
+    --adjust-to: "width";
+    border: 1px solid red;
+
+    transform: translate(-50%, -50%);
+}
