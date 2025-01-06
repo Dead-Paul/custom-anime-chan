@@ -3,7 +3,7 @@
 import {AnimeChan, setAnimeChanEvents} from '../../AnimeChan.js';
 
 /** Path for all img sources @type {String}*/
-const path = './preview/img/';
+const path = './demo/img/';
 
 /** Anime character @type {AnimeChan}*/
 const animeChan = new AnimeChan({
