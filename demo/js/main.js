@@ -6,7 +6,7 @@ import {AnimeChan, setAnimeChanEvents} from '../../AnimeChan.js';
 const path = './demo/img/';
 
 /** Anime character @type {AnimeChan}*/
-const animeChan = new AnimeChan({
+const animeChan = new AnimeChan('anime-chan-container', {
     sclera: { main: { src: path + 'sclera.png', position: { x: 0, y: 0 } } },
     eyes: {
         main: { src: path + 'eyes.png', position: { x: 595, y: 368 } },
@@ -24,4 +24,4 @@ const animeChan = new AnimeChan({
 });
 
 // Setting animeChan events on load and resize page
-setAnimeChanEvents('anime-chan-container', animeChan);
+setAnimeChanEvents(animeChan);

@@ -43,6 +43,8 @@ class AnimeChan {
     /**
      * All important info about anime character (all fields with 'Src' in the end of the name counts as src for images)
      * @constructor
+     * 
+     * @param {String!} containerId 
      *
      * @param {Object} character - Character info
      * @param {Object} character.body - Body info
@@ -73,7 +75,7 @@ class AnimeChan {
      * @param {Number} character.mouth.main.position.x - X (horizontal) position of the mouth
      * @param {Number} character.mouth.main.position.y - Y (vertical) position of the mouth
      */
-    constructor(character) {
+    constructor(containerId, character) {
         /**
          * Parts info
          * @type {Object}
@@ -118,6 +120,11 @@ class AnimeChan {
          * @type {Number}
          */
         this.ratio = 1;
+        /**
+         * Id of the container that contains anime character
+         * @type {String}
+         */
+        this.containerId = containerId;
     }
 
     /**
@@ -134,7 +141,7 @@ class AnimeChan {
         this.part[partName][partType]
             .then(/**@param {HTMLImageElement} img */ img => {
                 //@ts-expect-error : In the document must be element with id = `anime-chan-${partName}`;
-                (document.getElementById(containerId) || document.documentElement).replaceChild(img, document.getElementById(`anime-chan-${partName}`));
+                (document.getElementById(this.containerId) || document.documentElement).replaceChild(img, document.getElementById(`anime-chan-${partName}`));
                 this.active[partName] = partType;
             }).catch(/**@param {Error} error */ error => console.error(error));
     };
@@ -142,17 +149,16 @@ class AnimeChan {
 
 /**
  * Function that adds events on page load and resize for anime character
- * @param {String} containerId - Id of the container with anime character
  * @param {AnimeChan} animeChan - Anime character
  * @returns Nothing
  */
-function setAnimeChanEvents(containerId, animeChan)  {
+function setAnimeChanEvents(animeChan)  {
     ['DOMContentLoaded', 'resize'].forEach(event => window.addEventListener(event, async () => {
         /**
          * Container that will contain anime character
          * @type {HTMLElement}
          */
-        const container = document.getElementById(containerId) || document.documentElement;
+        const container = document.getElementById(animeChan.containerId) || document.documentElement;
         ['width', 'height'].forEach(property => container.style.removeProperty(property));
         const
             containerParams = container.getBoundingClientRect(),
