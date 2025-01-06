@@ -38,6 +38,7 @@ function addPrefix(prefix, word) {
  * @class
  *
  * @property {function} setActive - Sets active part of the main character on another part
+ * @property {function} setEvents - Sets events on page content load and resize for anime character
  */
 class AnimeChan {
     /**
@@ -134,7 +135,7 @@ class AnimeChan {
      * @param {!String} partName - Part of th character that you want to change
      * @param {?String} partType - Name of the part type ('main' by default)
      */
-    setActive = function (partName, partType) {
+    setActive(partName, partType) {
         partType = partType || 'main';
         if (this.active[partName] == partType) return;
 
@@ -145,58 +146,55 @@ class AnimeChan {
                 this.active[partName] = partType;
             }).catch(/**@param {Error} error */ error => console.error(error));
     };
-}
 
-/**
- * Function that adds events on page load and resize for anime character
- * @param {AnimeChan} animeChan - Anime character
- * @returns Nothing
- */
-function setAnimeChanEvents(animeChan)  {
-    ['DOMContentLoaded', 'resize'].forEach(event => window.addEventListener(event, async () => {
-        /**
-         * Container that will contain anime character
-         * @type {HTMLElement}
-         */
-        const container = document.getElementById(animeChan.containerId) || document.documentElement;
-        ['width', 'height'].forEach(property => container.style.removeProperty(property));
-        const
-            containerParams = container.getBoundingClientRect(),
-            styles = window.getComputedStyle(container),
-            minSize = styles.getPropertyValue('--adjust-to')
-                ? styles.getPropertyValue('--adjust-to').slice(1, -1)
-                : (containerParams.width < containerParams.height) ? 'width' : 'height',
-            maxSize = (minSize !== 'width')? 'width' : 'height',
-            /**@type {HTMLImageElement} */
-            animeChanBodyMainImage = await animeChan.part.body.main
-        ;
-
-        animeChan.ratio = animeChanBodyMainImage[addPrefix('natural', minSize)] / containerParams[minSize];
-        ['width', 'height'].forEach(prop => {
-            Object.keys(animeChan.part).forEach(partName => {
-                Object.keys(animeChan.part[partName]).forEach(async (partImage) => {
-                    const animeChanPartImage = await animeChan.part[partName][partImage];
-                    animeChanPartImage.style[addPrefix('max', prop)] = `${animeChanPartImage[addPrefix('natural', prop)] / animeChan.ratio}px`;
+    /**
+     * Sets events on page content load and resize for anime character
+     * @function
+     * @memberof AnimeChan
+     */
+    setEvents() {
+        ['DOMContentLoaded', 'resize'].forEach(event => window.addEventListener(event, async () => {
+            /** Container that will contain anime character @type {HTMLElement} */
+            const container = document.getElementById(this.containerId) || document.documentElement;
+            ['width', 'height'].forEach(property => container.style.removeProperty(property));
+            const
+                containerParams = container.getBoundingClientRect(),
+                styles = window.getComputedStyle(container),
+                minSize = styles.getPropertyValue('--adjust-to')
+                    ? styles.getPropertyValue('--adjust-to').slice(1, -1)
+                    : (containerParams.width < containerParams.height) ? 'width' : 'height',
+                maxSize = (minSize !== 'width')? 'width' : 'height',
+                /**@type {HTMLImageElement} */
+                animeChanBodyMainImage = await this.part.body.main
+            ;
+    
+            this.ratio = animeChanBodyMainImage[addPrefix('natural', minSize)] / containerParams[minSize];
+            ['width', 'height'].forEach(prop => {
+                Object.keys(this.part).forEach(partName => {
+                    Object.keys(this.part[partName]).forEach(async (partImage) => {
+                        const animeChanPartImage = await this.part[partName][partImage];
+                        animeChanPartImage.style[addPrefix('max', prop)] = `${animeChanPartImage[addPrefix('natural', prop)] / this.ratio}px`;
+                    });
                 });
             });
-        });
-
-        if (styles.getPropertyValue('--adjust-to'))
-            container.style[maxSize] = `${animeChanBodyMainImage[addPrefix('natural', maxSize)] / animeChan.ratio}px`;
-
-        ['top', 'left'].forEach((side) => {
-            Object.keys(animeChan.part).forEach((partName) => {
-                Object.keys(animeChan.part[partName]).forEach(async (partImage) => {
-                    const animeChanPartImage = await animeChan.part[partName][partImage];
-                    animeChanPartImage.style[side] = `${parseFloat(animeChan.startPosition[partName][partImage][side]) / animeChan.ratio}px`;
+    
+            if (styles.getPropertyValue('--adjust-to'))
+                container.style[maxSize] = `${animeChanBodyMainImage[addPrefix('natural', maxSize)] / this.ratio}px`;
+    
+            ['top', 'left'].forEach((side) => {
+                Object.keys(this.part).forEach((partName) => {
+                    Object.keys(this.part[partName]).forEach(async (partImage) => {
+                        const animeChanPartImage = await this.part[partName][partImage];
+                        animeChanPartImage.style[side] = `${parseFloat(this.startPosition[partName][partImage][side]) / this.ratio}px`;
+                    });
                 });
             });
-        });
-
-        Object.keys(animeChan.part).forEach(async (partName) => {
-            if (animeChan.active[partName]) container.appendChild(await animeChan.part[partName][animeChan.active[partName]]);
-        });
-    }));
+    
+            Object.keys(this.part).forEach(async (partName) => {
+                if (this.active[partName]) container.appendChild(await this.part[partName][this.active[partName]]);
+            });
+        }));
+    };
 };
 
-export {AnimeChan, setAnimeChanEvents};
+export default AnimeChan;

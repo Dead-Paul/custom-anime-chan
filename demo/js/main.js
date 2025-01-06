@@ -1,6 +1,6 @@
 //@ts-check
 // Importing from the plugin
-import {AnimeChan, setAnimeChanEvents} from '../../AnimeChan.js';
+import AnimeChan from '../../AnimeChan.js';
 
 /** Path for all img sources @type {String}*/
 const path = './demo/img/';
@@ -23,5 +23,4 @@ const animeChan = new AnimeChan('anime-chan-container', {
     },
 });
 
-// Setting animeChan events on load and resize page
-setAnimeChanEvents(animeChan);
+animeChan.setEvents();
