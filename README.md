@@ -36,8 +36,8 @@ Second things second you need to create instance of the AnimeChan class such as 
               > Note: All images will be a promises, so to work with them you need to use an `await` and `async` or `.then().catch()` syntax.
 
             * _Object_ **`position`** - Position of the body (left top corner);
-                * _Number_ x - X (horizontal) position of the body;
-                * _Number_ y - Y (vertical) position of the body;
+                * _Number_ **`x`** - X (horizontal) position of the body;
+                * _Number_ **`y`** - Y (vertical) position of the body;
 
       > Note: this was all required variables that you must add to each object of the `character`. At first appear of the character on the page (about it later) will be added all `main` images of each `body part`. So if you want to hide some of this you will need to hide it with styles in your code.
     
