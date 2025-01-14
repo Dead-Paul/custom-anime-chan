@@ -45,7 +45,7 @@ class AnimeChan {
      * All important info about anime character (all fields with 'Src' in the end of the name counts as src for images)
      * @constructor
      * 
-     * @param {String!} containerId 
+     * @param {String!} containerId - Id of the container with anime character
      *
      * @param {Object} character - Character info
      * @param {Object} character.body - Body info
